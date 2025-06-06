@@ -1,0 +1,244 @@
+//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+public class Task001{
+    public static void main(String[] args) {
+        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
+        // to see how IntelliJ IDEA suggests fixing it.
+        System.out.println("Hello How are you?");
+        System.out.println("Welcome on Board");
+
+        }
+    }
+
+...............................................
+public class Task002 {
+    public static int add (int a,int b){
+        return a + b;
+    }
+    public static void main (String[] args){
+        int result1 = add(2,3);
+        System.out.println("Result 1: " + result1);
+        int result2 = add(20,30);
+        System.out.println("Result 2: " + result2);
+        int result3 = add(10,20);
+        System.out.println("Result 3: " + result3);
+    }
+}
+........................
+public class Task004 {
+    public static void main(String[] args){
+        int a = 2;
+        int b = 5;
+        int temp = 0;
+        System.out.println("Before swapping:");
+        System.out.println("a = " + a);
+        System.out.println("b = " + b);
+        temp = a;
+        a = b;
+        b = temp;
+        System.out.println("After swapping:");
+        System.out.println("a = " + a);
+        System.out.println("b = " + b);
+
+    }
+}
+.......................
+public class Task005 {
+    public static void main(String[] args) {
+        int a = 10;
+        int b = 15;
+        System.out.println("Main Started");
+        int additionResult = add(a, b);
+        int subtractionResult = subtract(a, b);
+        int multiplicationResult = multiply(a, b);
+        int divisionResult = divide(a, b);
+        System.out.println("Sum of 2 numbers is : "+additionResult);
+        System.out.println("Diff of 2 numbers is : "+subtractionResult);
+        System.out.println("Product of 2 numbers is : "+multiplicationResult);
+        System.out.println("Division of 2 numbers is : "+divisionResult);
+        System.out.println("Main Ended");
+    }
+
+    public static int add(int a, int b) {
+        return a + b;
+    }
+
+    public static int subtract(int a, int b) {
+        return a - b;
+
+    }
+
+    public static int multiply(int a, int b) {
+        return a * b;
+    }
+
+    public static int divide (int a, int b) {
+        return a / b;
+    }
+}
+........................
+public class Task006 {
+    public static void main(String[] args) {
+        int a = 5;
+        int b = 10;
+        String result = (a > b)? " a is greater than b" : "b is greater than or equal to a";
+        System.out.println(result);
+    }
+}
+........................
+import java.util.Scanner;
+public class Task007 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter username: ");
+        String userName = sc.nextLine();
+        System.out.print("Enter password: ");
+        String password = sc.nextLine();
+        System.out.println("\nHi, \n");
+        System.out.println("\t\tYour login ID is :"+userName);
+        System.out.println(("And your password is : *********"));
+    }
+}
+.....................
+public class Task008 {
+
+    public static class Customer{
+        public void accept(){
+            System.out.println("accept customer called");
+        }
+        public void display(){
+            System.out.println("display customer called");
+        }
+    }
+
+    public static void main(String[] args){
+        Customer cobj = new Customer();
+        cobj.accept();
+        cobj.display();
+    }
+}
+.......................
+public class Task009 {
+
+    public static void main(String[] args){
+        int num1 = 25;
+        int num2 = 10;
+        if(num1 > num2){
+            System.out.println("num1 is greater");
+        }
+        else{
+            System.out.println("num2 is greater");
+        }
+    }
+}
+....................
+public class Task010 {
+    public static void main(String[] args){
+        int num1 = 30;
+        int num2 = 25;
+        int num3 = 10;
+        if(num1 > num2 && num1 > num3){
+            System.out.println("num1 is greater");
+        }
+        else if(num2>num1 && num2>num3){
+            System.out.println("num2 is greater");
+        }
+        else{
+            System.out.println("num3 is greater");
+        }
+    }
+}
+.......................
+Microsoft Windows [Version 10.0.19045.5737]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git remote -v
+origin  https://github.com/Charitha24/ATLAS_SDE_bbhavyac2.git (fetch)
+origin  https://github.com/Charitha24/ATLAS_SDE_bbhavyac2.git (push)
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git branch
+* master
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git checkout -b JAVACODES
+Switched to a new branch 'JAVACODES'
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git branch
+* JAVACODES
+  master
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git status
+On branch JAVACODES
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   ../.gitignore
+        new file:   ../.idea/.gitignore
+        new file:   ../.idea/modules.xml
+        new file:   ../.idea/vcs.xml
+        new file:   ../6th Day - June.iml
+        new file:   Task001.java
+        new file:   Task002.java
+        new file:   Task004.java
+        new file:   Task005.java
+        new file:   Task006.java
+        new file:   Task007.java
+        new file:   Task008.java
+        new file:   Task009.java
+        new file:   Task010.java
+
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git add .
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git status
+On branch JAVACODES
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   ../.gitignore
+        new file:   ../.idea/.gitignore
+        new file:   ../.idea/modules.xml
+        new file:   ../.idea/vcs.xml
+        new file:   ../6th Day - June.iml
+        new file:   Task001.java
+        new file:   Task002.java
+        new file:   Task004.java
+        new file:   Task005.java
+        new file:   Task006.java
+        new file:   Task007.java
+        new file:   Task008.java
+        new file:   Task009.java
+        new file:   Task010.java
+
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git commit -m "Push new codes"
+[JAVACODES 154d4a6] Push new codes
+ 14 files changed, 199 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 .idea/.gitignore
+ create mode 100644 .idea/modules.xml
+ create mode 100644 .idea/vcs.xml
+ create mode 100644 6th Day - June.iml
+ create mode 100644 src/Task001.java
+ create mode 100644 src/Task002.java
+ create mode 100644 src/Task004.java
+ create mode 100644 src/Task005.java
+ create mode 100644 src/Task006.java
+ create mode 100644 src/Task007.java
+ create mode 100644 src/Task008.java
+ create mode 100644 src/Task009.java
+ create mode 100644 src/Task010.java
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>git push origin JAVACODES
+Enumerating objects: 22, done.
+Counting objects: 100% (22/22), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (20/20), done.
+Writing objects: 100% (22/22), 3.78 KiB | 352.00 KiB/s, done.
+Total 22 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), done.
+remote:
+remote: Create a pull request for 'JAVACODES' on GitHub by visiting:
+remote:      https://github.com/Charitha24/ATLAS_SDE_bbhavyac2/pull/new/JAVACODES
+remote:
+To https://github.com/Charitha24/ATLAS_SDE_bbhavyac2.git
+ * [new branch]      JAVACODES -> JAVACODES
+
+C:\Users\Administrator\IdeaProjects\6th Day - June\src>
