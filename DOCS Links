@@ -8,6 +8,25 @@ https://drive.google.com/drive/folders/1p0nar8-8UL70uPgB_DJFBTT503BaYzr5
 
 public class Main {
   public static void main(String[] args) {
+    int[] myNumbers = {1, 2, 3};
+    System.out.println(myNumbers[2]);
+  }
+}
+
+
+public class Main {
+  public static void main(String[] args) {
+    try {
+      int[] myNumbers = {1, 2, 3};
+      System.out.println(myNumbers[10]);
+    } catch (Exception e) {
+      System.out.println("Something went wrong.");
+    }
+  }
+}
+
+public class Main {
+  public static void main(String[] args) {
     try {
       int[] myNumbers = {1, 2, 3};
       System.out.println(myNumbers[10]);
@@ -23,9 +42,11 @@ public class Main {
   public static void main(String[] args) {
     try {
       int[] myNumbers = {1, 2, 3};
-      System.out.println(myNumbers[10]);
+      System.out.println(myNumbers[2]);
     } catch (Exception e) {
       System.out.println("Something went wrong.");
+    } finally {
+      System.out.println("I'm from finally block.");
     }
   }
 }
