@@ -1,1 +1,166 @@
 1 - bhavya.
+
+Employee.java
+public class Employee {
+    private int id;
+    private String name;
+    private String department;
+    private String contact;
+
+    public Employee() {}
+    public Employee(int id, String name, String department, String contact) {
+        this.id = id;
+        this.name = name;
+        this.department = department;
+        this.contact = contact;
+    }
+    // Getters and setters...
+}
+
+EmployeeDAO.java
+import java.sql.*;
+import java.util.*;
+
+public class EmployeeDAO {
+    private Connection conn;
+    public EmployeeDAO(Connection conn) { this.conn = conn; }
+
+    public void createEmployee(Employee emp) throws SQLException {
+        String sql = "INSERT INTO Employee (name, department, contact) VALUES (?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, emp.getName());
+            stmt.setString(2, emp.getDepartment());
+            stmt.setString(3, emp.getContact());
+            stmt.executeUpdate();
+        }
+    }
+
+    public Employee getEmployee(int id) throws SQLException {
+        String sql = "SELECT * FROM Employee WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Employee(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("department"),
+                    rs.getString("contact")
+                );
+            } else return null;
+        }
+    }
+
+    public List<Employee> getAllEmployees() throws SQLException {
+        List<Employee> employees = new ArrayList<>();
+        String sql = "SELECT * FROM Employee";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                employees.add(new Employee(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("department"),
+                    rs.getString("contact")
+                ));
+            }
+        }
+        return employees;
+    }
+
+    public void updateEmployee(Employee emp) throws SQLException {
+        String sql = "UPDATE Employee SET name=?, department=?, contact=? WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, emp.getName());
+            stmt.setString(2, emp.getDepartment());
+            stmt.setString(3, emp.getContact());
+            stmt.setInt(4, emp.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteEmployee(int id) throws SQLException {
+        String sql = "DELETE FROM Employee WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+EmployeeServlet.java
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+
+public class EmployeeServlet extends HttpServlet {
+    private EmployeeDAO employeeDAO;
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            employeeDAO = new EmployeeDAO(DBUtil.getConnection());
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            List<Employee> employees = employeeDAO.getAllEmployees();
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            out.println("[");
+            for (int i = 0; i < employees.size(); i++) {
+                Employee emp = employees.get(i);
+                out.printf("{\"id\":%d,\"name\":\"%s\",\"department\":\"%s\",\"contact\":\"%s\"}", emp.getId(), emp.getName(), emp.getDepartment(), emp.getContact());
+                if (i != employees.size()-1) out.println(",");
+            }
+            out.println("]");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String name = req.getParameter("name");
+        String department = req.getParameter("department");
+        String contact = req.getParameter("contact");
+        Employee emp = new Employee(0, name, department, contact);
+        try {
+            employeeDAO.createEmployee(emp);
+            resp.getWriter().println("Employee created!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        String name = req.getParameter("name");
+        String department = req.getParameter("department");
+        String contact = req.getParameter("contact");
+        Employee emp = new Employee(id, name, department, contact);
+        try {
+            employeeDAO.updateEmployee(emp);
+            resp.getWriter().println("Employee updated!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        try {
+            employeeDAO.deleteEmployee(id);
+            resp.getWriter().println("Employee deleted!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+}
