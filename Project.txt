@@ -1,0 +1,1019 @@
+Department CRUD:
+
+Department.java
+public class Department {
+    private int id;
+    private String name;
+
+    public Department() {}
+    public Department(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    // Getters and setters...
+}
+
+DepartmentDAO.java
+import java.sql.*;
+import java.util.*;
+
+public class DepartmentDAO {
+    private Connection conn;
+    public DepartmentDAO(Connection conn) { this.conn = conn; }
+
+    public void createDepartment(Department dep) throws SQLException {
+        String sql = "INSERT INTO Department (name) VALUES (?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dep.getName());
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<Department> getAllDepartments() throws SQLException {
+        List<Department> departments = new ArrayList<>();
+        String sql = "SELECT * FROM Department";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                departments.add(new Department(
+                    rs.getInt("id"),
+                    rs.getString("name")
+                ));
+            }
+        }
+        return departments;
+    }
+
+    public void updateDepartment(Department dep) throws SQLException {
+        String sql = "UPDATE Department SET name=? WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dep.getName());
+            stmt.setInt(2, dep.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteDepartment(int id) throws SQLException {
+        String sql = "DELETE FROM Department WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+DepartmentServlet.java
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+
+public class DepartmentServlet extends HttpServlet {
+    private DepartmentDAO departmentDAO;
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            departmentDAO = new DepartmentDAO(DBUtil.getConnection());
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            List<Department> departments = departmentDAO.getAllDepartments();
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            out.println("[");
+            for (int i = 0; i < departments.size(); i++) {
+                Department dep = departments.get(i);
+                out.printf("{\"id\":%d,\"name\":\"%s\"}", dep.getId(), dep.getName());
+                if (i != departments.size()-1) out.println(",");
+            }
+            out.println("]");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String name = req.getParameter("name");
+        Department dep = new Department(0, name);
+        try {
+            departmentDAO.createDepartment(dep);
+            resp.getWriter().println("Department created!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        String name = req.getParameter("name");
+        Department dep = new Department(id, name);
+        try {
+            departmentDAO.updateDepartment(dep);
+            resp.getWriter().println("Department updated!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        try {
+            departmentDAO.deleteDepartment(id);
+            resp.getWriter().println("Department deleted!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+}
+
+Payroll CRUD:
+
+import java.sql.Date;
+
+public class Payroll {
+    private int id;
+    private int employeeId;
+    private double salary;
+    private Date payDate;
+
+    public Payroll() {}
+    public Payroll(int id, int employeeId, double salary, Date payDate) {
+        this.id = id;
+        this.employeeId = employeeId;
+        this.salary = salary;
+        this.payDate = payDate;
+    }
+    // Getters and setters...
+}
+
+
+import java.sql.*;
+import java.util.*;
+
+public class PayrollDAO {
+    private Connection conn;
+    public PayrollDAO(Connection conn) { this.conn = conn; }
+
+    public void createPayroll(Payroll pr) throws SQLException {
+        String sql = "INSERT INTO Payroll (employeeId, salary, payDate) VALUES (?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, pr.getEmployeeId());
+            stmt.setDouble(2, pr.getSalary());
+            stmt.setDate(3, pr.getPayDate());
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<Payroll> getPayrollsByEmployee(int employeeId) throws SQLException {
+        List<Payroll> payrolls = new ArrayList<>();
+        String sql = "SELECT * FROM Payroll WHERE employeeId=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, employeeId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                payrolls.add(new Payroll(
+                    rs.getInt("id"),
+                    rs.getInt("employeeId"),
+                    rs.getDouble("salary"),
+                    rs.getDate("payDate")
+                ));
+            }
+        }
+        return payrolls;
+    }
+
+    public List<Payroll> getAllPayrolls() throws SQLException {
+        List<Payroll> payrolls = new ArrayList<>();
+        String sql = "SELECT * FROM Payroll";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                payrolls.add(new Payroll(
+                    rs.getInt("id"),
+                    rs.getInt("employeeId"),
+                    rs.getDouble("salary"),
+                    rs.getDate("payDate")
+                ));
+            }
+        }
+        return payrolls;
+    }
+
+    public void updatePayroll(Payroll pr) throws SQLException {
+        String sql = "UPDATE Payroll SET salary=?, payDate=? WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, pr.getSalary());
+            stmt.setDate(2, pr.getPayDate());
+            stmt.setInt(3, pr.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deletePayroll(int id) throws SQLException {
+        String sql = "DELETE FROM Payroll WHERE id=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+
+public class PayrollServlet extends HttpServlet {
+    private PayrollDAO payrollDAO;
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            payrollDAO = new PayrollDAO(DBUtil.getConnection());
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            List<Payroll> payrolls = payrollDAO.getAllPayrolls();
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            out.println("[");
+            for (int i = 0; i < payrolls.size(); i++) {
+                Payroll pr = payrolls.get(i);
+                out.printf("{\"id\":%d,\"employeeId\":%d,\"salary\":%.2f,\"payDate\":\"%s\"}", pr.getId(), pr.getEmployeeId(), pr.getSalary(), pr.getPayDate());
+                if (i != payrolls.size()-1) out.println(",");
+            }
+            out.println("]");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int employeeId = Integer.parseInt(req.getParameter("employeeId"));
+        double salary = Double.parseDouble(req.getParameter("salary"));
+        Date payDate = Date.valueOf(req.getParameter("payDate"));
+        Payroll pr = new Payroll(0, employeeId, salary, payDate);
+        try {
+            payrollDAO.createPayroll(pr);
+            resp.getWriter().println("Payroll created!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        double salary = Double.parseDouble(req.getParameter("salary"));
+        Date payDate = Date.valueOf(req.getParameter("payDate"));
+        Payroll pr = new Payroll(id, 0, salary, payDate);
+        try {
+            payrollDAO.updatePayroll(pr);
+            resp.getWriter().println("Payroll updated!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int id = Integer.parseInt(req.getParameter("id"));
+        try {
+            payrollDAO.deletePayroll(id);
+            resp.getWriter().println("Payroll deleted!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+}
+
+Attendance Feature
+
+import java.sql.Date;
+import java.sql.Time;
+
+public class Attendance {
+    private int id;
+    private int employeeId;
+    private Date date;
+    private Time inTime;
+    private Time outTime;
+
+    public Attendance() {}
+    public Attendance(int id, int employeeId, Date date, Time inTime, Time outTime) {
+        this.id = id;
+        this.employeeId = employeeId;
+        this.date = date;
+        this.inTime = inTime;
+        this.outTime = outTime;
+    }
+    // Getters and setters...
+}
+
+
+import java.sql.*;
+import java.util.*;
+
+public class AttendanceDAO {
+    private Connection conn;
+    public AttendanceDAO(Connection conn) { this.conn = conn; }
+
+    public void markAttendance(Attendance att) throws SQLException {
+        String sql = "INSERT INTO Attendance (employeeId, date, inTime, outTime) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, att.getEmployeeId());
+            stmt.setDate(2, att.getDate());
+            stmt.setTime(3, att.getInTime());
+            stmt.setTime(4, att.getOutTime());
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<Attendance> getAttendanceByEmployee(int employeeId) throws SQLException {
+        List<Attendance> records = new ArrayList<>();
+        String sql = "SELECT * FROM Attendance WHERE employeeId=?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, employeeId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    records.add(new Attendance(
+                        rs.getInt("id"),
+                        rs.getInt("employeeId"),
+                        rs.getDate("date"),
+                        rs.getTime("inTime"),
+                        rs.getTime("outTime")
+                    ));
+                }
+            }
+        }
+        return records;
+    }
+}
+
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+
+public class AttendanceServlet extends HttpServlet {
+    private AttendanceDAO attendanceDAO;
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            attendanceDAO = new AttendanceDAO(DBUtil.getConnection());
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int employeeId = Integer.parseInt(req.getParameter("employeeId"));
+        Date date = Date.valueOf(req.getParameter("date"));
+        Time inTime = Time.valueOf(req.getParameter("inTime"));
+        Time outTime = Time.valueOf(req.getParameter("outTime"));
+        Attendance att = new Attendance(0, employeeId, date, inTime, outTime);
+
+        try {
+            attendanceDAO.markAttendance(att);
+            resp.getWriter().println("Attendance marked!");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int employeeId = Integer.parseInt(req.getParameter("employeeId"));
+        try {
+            List<Attendance> records = attendanceDAO.getAttendanceByEmployee(employeeId);
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            out.println("[");
+            for (int i = 0; i < records.size(); i++) {
+                Attendance att = records.get(i);
+                out.printf("{\"id\":%d,\"employeeId\":%d,\"date\":\"%s\",\"inTime\":\"%s\",\"outTime\":\"%s\"}", att.getId(), att.getEmployeeId(), att.getDate(), att.getInTime(), att.getOutTime());
+                if (i != records.size()-1) out.println(",");
+            }
+            out.println("]");
+        } catch (SQLException e) {
+            resp.sendError(500, e.getMessage());
+        }
+    }
+}
+
+
+
+PayrollQueueProcessor.java
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class PayrollQueueProcessor {
+    private Queue<Integer> employeeQueue = new LinkedList<>();
+
+    public void addEmployeeToProcess(int employeeId) {
+        employeeQueue.offer(employeeId);
+    }
+
+    public void processPayrollBatch() {
+        while (!employeeQueue.isEmpty()) {
+            int employeeId = employeeQueue.poll();
+            System.out.println("Processing payroll for employee " + employeeId);
+            // Call payrollDAO to compute payroll for employeeId
+        }
+    }
+}
+
+
+6. DynamoDB Leave Requests (Stub Example)
+
+LeaveRequest.java
+public class LeaveRequest {
+    private String requestId;
+    private int employeeId;
+    private String fromDate;
+    private String toDate;
+    private String status;
+    // Constructors, getters, setters
+}
+
+DynamoDBUtil.java
+public class DynamoDBUtil {
+    // Stub: In real code, use AWS SDK to interact with DynamoDB
+    public void saveLeaveRequest(LeaveRequest req) {
+        System.out.println("Saving leave request to DynamoDB: " + req.getRequestId());
+    }
+}
+
+7. Jenkins Pipeline
+pipeline {
+    agent any
+    stages {
+        stage('Compile') {
+            steps {
+                sh 'javac -d bin backend/*.java'
+            }
+        }
+        stage('Test') {
+            steps {
+                // Run your Java tests here
+            }
+        }
+        stage('Payroll Batch') {
+            steps {
+                sh 'java -cp bin PayrollQueueProcessor'
+            }
+        }
+    }
+}
+
+
+8. BDD Test (Cucumber)
+
+payroll_generation.feature
+
+Feature: Payroll Generation
+
+  Scenario: Generate payroll for all employees
+    Given employees exist in the system
+    And attendance for the month is recorded
+    When the payroll job runs
+    Then payroll records are generated for each employee
+
+
+9. DB Util Class
+
+DBUtil.java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBUtil {
+    public static Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/hrms";
+        String user = "root";
+        String password = "yourpassword";
+        return DriverManager.getConnection(url, user, password);
+    }
+}
+
+
+
+SAMPLE OUTPUTS (Day 10 Demo)
+1. Employee CRUD
+GET /employees
+JSON
+[
+  {"id":1,"name":"John Doe","department":"HR","contact":"john@company.com"},
+  {"id":2,"name":"Jane Smith","department":"IT","contact":"jane@company.com"}
+]
+
+POST /employees (with params name=Alice, department=Finance, contact=alice@company.com)
+Code
+Employee created!
+
+PUT /employees?id=1 (with params name=Johnny, department=HR, contact=johnny@company.com)
+Code
+Employee updated!
+
+DELETE /employees?id=2
+Code
+Employee deleted!
+
+2. Department CRUD
+GET /departments
+JSON
+[
+  {"id":1,"name":"HR"},
+  {"id":2,"name":"IT"}
+]
+Similar POST/PUT/DELETE responses as above.
+
+3. Payroll CRUD
+GET /payrolls
+JSON
+[
+  {"id":1,"employeeId":1,"salary":50000.00,"payDate":"2025-09-30"},
+  {"id":2,"employeeId":2,"salary":60000.00,"payDate":"2025-09-30"}
+]
+Similar POST/PUT/DELETE responses as above.
+
+4. Attendance APIs
+POST /attendance (with params)
+Code
+Attendance marked!
+GET /attendance?employeeId=1
+JSON
+[
+  {"id":1,"employeeId":1,"date":"2025-09-21","inTime":"09:00:00","outTime":"17:00:00"}
+]
+
+5. Payroll Batch Processing
+Console output:
+Code
+Processing payroll for employee 1
+Processing payroll for employee 2
+
+6. DynamoDB Leave Request Integration
+Console output (stub):
+Code
+Saving leave request to DynamoDB: LR001
+
+7. Jenkins Pipeline
+Jenkins console:
+Code
+[Pipeline] Start of pipeline
+[Compile] Compiling Java files...
+[Test] Running unit tests...
+[Payroll Batch] Running payroll batch processor...
+Processing payroll for employee 1
+Processing payroll for employee 2
+
+8. BDD Test
+Cucumber output:
+Code
+Feature: Payroll Generation
+  Scenario: Generate payroll for all employees
+    Given employees exist in the system
+    And attendance for the month is recorded
+    When the payroll job runs
+    Then payroll records are generated for each employee
+If you want a web.xml or more integration tips, let me know! You can copy/paste and organize these files into your repo and run on Tomcat or any Java web server.
+
+
+Thank you. you have given all codes, but what about the web server i mean, i am not using any framework na, so its plain core java so you have to give related web server, dependencies codes etc. Also give me this project structure, i will copy paste.
+
+Absolutely! Here’s what you need for a plain Core Java REST API project with Servlets, JDBC, and no frameworks:
+
+1. Project Structure
+Here is a recommended directory structure:
+
+Code
+Employee-HRMS-Portal/
+├── backend/
+│   ├── Employee.java
+│   ├── EmployeeDAO.java
+│   ├── EmployeeServlet.java
+│   ├── Department.java
+│   ├── DepartmentDAO.java
+│   ├── DepartmentServlet.java
+│   ├── Payroll.java
+│   ├── PayrollDAO.java
+│   ├── PayrollServlet.java
+│   ├── Attendance.java
+│   ├── AttendanceDAO.java
+│   ├── AttendanceServlet.java
+│   ├── PayrollQueueProcessor.java
+│   ├── DBUtil.java
+├── dynamodb/
+│   ├── LeaveRequest.java
+│   ├── DynamoDBUtil.java
+├── db/
+│   ├── schema.sql
+│   ├── payroll_query.sql
+├── devops/
+│   ├── Jenkinsfile
+├── tests/
+│   ├── payroll_generation.feature
+├── docs/
+│   ├── requirements.md
+│   ├── class-diagram.md
+├── README.md
+├── web.xml
+
+2. Dependencies & Setup
+A. Servlet Container
+You need a servlet container like Apache Tomcat. Download and install from Tomcat website.
+
+B. JDBC
+Add the MySQL JDBC Driver (mysql-connector-java-x.x.x.jar) to your WEB-INF/lib folder.
+
+C. web.xml
+Configure your servlet mappings.
+web.xml
+<web-app>
+  <servlet>
+    <servlet-name>EmployeeServlet</servlet-name>
+    <servlet-class>backend.EmployeeServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EmployeeServlet</servlet-name>
+    <url-pattern>/employees</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DepartmentServlet</servlet-name>
+    <servlet-class>backend.DepartmentServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DepartmentServlet</servlet-name>
+    <url-pattern>/departments</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PayrollServlet</servlet-name>
+    <servlet-class>backend.PayrollServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PayrollServlet</servlet-name>
+    <url-pattern>/payrolls</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>AttendanceServlet</servlet-name>
+    <servlet-class>backend.AttendanceServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AttendanceServlet</servlet-name>
+    <url-pattern>/attendance</url-pattern>
+  </servlet-mapping>
+</web-app>
+
+3. How to Build & Deploy
+Compile Java Files
+
+Use javac to compile all .java files:
+bash
+javac -d build backend/*.java
+Create WAR File
+
+Structure:
+Code
+Employee-HRMS-Portal.war
+├── WEB-INF/
+│   ├── classes/
+│   │   └── backend/*.class
+│   ├── lib/
+│   │   └── mysql-connector-java-x.x.x.jar
+│   └── web.xml
+Use jar command:
+bash
+jar -cvf Employee-HRMS-Portal.war -C build/ . -C . web.xml
+Deploy to Tomcat
+
+Copy the .war file to Tomcat’s webapps folder.
+Start Tomcat (bin/startup.sh on Unix, bin/startup.bat on Windows).
+
+4. Sample README.md
+
+# Employee HRMS Portal (Plain Java/Servlets)
+
+## Requirements
+- Java 8+
+- Apache Tomcat 9+
+- MySQL Server
+- MySQL JDBC Connector
+
+## Setup
+
+1. Import the schema from `db/schema.sql` into your MySQL.
+2. Update `DBUtil.java` with your database credentials.
+3. Compile all Java files in `backend/`.
+4. Build WAR file and deploy to Tomcat.
+5. Place `mysql-connector-java-x.x.x.jar` in `WEB-INF/lib/`.
+6. Access endpoints via:
+   - `/employees`
+   - `/departments`
+   - `/payrolls`
+   - `/attendance`
+
+## API Testing
+- Use Postman or curl to hit endpoints for CRUD operations.
+
+## Demo
+- See sample output in responses above.
+
+5. Dependencies (for WEB-INF/lib)
+Download MySQL Connector/J (link)
+Place mysql-connector-java-x.x.x.jar in your WEB-INF/lib folder in the WAR.
+
+6. How to Run Locally
+Start MySQL and Tomcat.
+Deploy the .war file.
+Use Postman or browser to hit REST endpoints.
+Let me know if you need a sample WAR structure, help with compiling, or want a sample Postman collection!
+
+
+Thank you so much. it helped me a lot. i have one last question regarding this. you have given all codes na. where can  i copy these codes? i mean in VS or intellij or any other? where to paste and check the output of project.
+
+1. Recommended IDEs for Java Projects
+A. IntelliJ IDEA
+Very popular for Java, supports Maven/Gradle/Tomcat projects.
+Easiest for managing Servlets and web projects.
+Free Community Edition is sufficient.
+
+2. How to Use Your IDE
+A. IntelliJ IDEA
+Create a new Project: Select "Java" > "Java Enterprise" or "Java Servlet" project.
+Paste Your Files: Copy each code block into its corresponding .java file in your project’s src or backend folder.
+Add libraries: Download the MySQL Connector JAR and add it to your project libraries.
+Add web.xml: Place this in src/main/webapp/WEB-INF/.
+Configure Tomcat: In "Run Configurations", set up Tomcat and deploy your project as a WAR.
+
+3. Testing Your APIs
+Use Postman or curl to send HTTP requests to your running server (Tomcat).
+Example: http://localhost:8080/Employee-HRMS-Portal/employees
+
+
+4. Summary Table
+Editor/IDE	Good For	How to Test Output
+IntelliJ	All Java projects	Built-in Tomcat, easy deploy
+
+
+5. What To Do
+Pick an IDE (IntelliJ or Eclipse recommended for web projects).
+Copy each code file into the matching filename in your project.
+Set up Tomcat & MySQL as described.
+Build and run, then test your endpoints.
+
+
+
+
+ok i will select intellij IDEA. now guide me the process, from creating project to see the total output and the same ide files to be uploaded to this git repository.
+
+1. Create the Project in IntelliJ IDEA
+Step-by-Step
+Open IntelliJ IDEA
+Click "New Project".
+
+Select "Java"
+
+Select "Java", then "Java Enterprise" if available.
+If asked, select "Web Application" (if not, you can add the web module later).
+Project SDK
+
+Choose Java 8 or above.
+Project Name & Location
+
+Name: Employee-HRMS-Portal
+Location: Your preferred directory (e.g., C:\Users\YourName\IdeaProjects\Employee-HRMS-Portal)
+Project Structure
+
+IntelliJ will create src, and you can add folders like backend, dynamodb, etc.
+
+
+2. Project Structure
+Replicate the structure:
+
+Code
+Employee-HRMS-Portal/
+├── src/
+│   ├── backend/
+│   │   ├── Employee.java
+│   │   ├── EmployeeDAO.java
+│   │   ├── EmployeeServlet.java
+│   │   ├── Department.java
+│   │   ├── DepartmentDAO.java
+│   │   ├── DepartmentServlet.java
+│   │   ├── Payroll.java
+│   │   ├── PayrollDAO.java
+│   │   ├── PayrollServlet.java
+│   │   ├── Attendance.java
+│   │   ├── AttendanceDAO.java
+│   │   ├── AttendanceServlet.java
+│   │   ├── PayrollQueueProcessor.java
+│   │   ├── DBUtil.java
+│   ├── dynamodb/
+│   │   ├── LeaveRequest.java
+│   │   ├── DynamoDBUtil.java
+├── web/
+│   └── WEB-INF/
+│       └── web.xml
+├── db/
+│   ├── schema.sql
+│   ├── payroll_query.sql
+├── devops/
+│   └── Jenkinsfile
+├── tests/
+│   └── payroll_generation.feature
+├── docs/
+│   ├── requirements.md
+│   ├── class-diagram.md
+├── README.md
+
+
+3. Adding Files
+Copy and paste the code blocks I provided into their respective files.
+Use File > New > Java Class, and name each as needed (Employee, EmployeeDAO, etc.)
+For folders like db, docs, etc., right-click the project > New > Directory.
+
+
+4. Add Dependencies
+A. Add MySQL Connector/J
+Download mysql-connector-java-x.x.x.jar
+In IntelliJ:
+Right-click project > Open Module Settings > Libraries > Add > Java
+Select the downloaded JAR.
+IntelliJ will add it to your build path.
+
+
+5. Configure Tomcat
+A. Add Tomcat Server to IntelliJ
+Download Tomcat from here.
+In IntelliJ:
+File > Settings > Build, Execution, Deployment > Application Servers > Add > Tomcat Server
+Point to the Tomcat installation directory.
+B. Configure Deployment
+Run > Edit Configurations > Add New Configuration (+) > Tomcat Server > Local
+Set the artifact (WAR) to deploy (IntelliJ will help you build the WAR).
+
+
+6. Add web.xml
+Paste the web.xml in src/web/WEB-INF/web.xml.
+
+
+7. Import Database Schema
+Use MySQL Workbench or command line to run:
+
+bash
+mysql -u root -p < db/schema.sql
+Update DBUtil.java with your MySQL username and password.
+
+
+8. Build and Run
+Build the Project
+
+IntelliJ will compile your .java files.
+Run on Tomcat
+
+Start Tomcat from IntelliJ (Run > Run 'Tomcat Server').
+The project will deploy automatically.
+Test REST Endpoints
+
+Use Postman or browser.
+Example: http://localhost:8080/Employee-HRMS-Portal/employees
+
+
+9. View Output
+You’ll see JSON, text output, or confirmation messages as described previously for each API.
+You can also check your database to confirm data is being inserted/updated.
+
+
+10. Upload to GitHub
+A. Initialize Git in IntelliJ
+VCS > Enable Version Control Integration > Git
+VCS > Import into Version Control > Share Project on GitHub
+Use your repo URL: https://github.com/Charitha24/Employee-HRMS-Portal---Final-Project---Bondili-Bhavya-Charitha---Batch-2
+B. Commit and Push
+Commit all files (src, docs, db, etc.).
+Push to the remote repository.
+11. Done!
+Your code is now in GitHub and running locally.
+You can demo your project by showing API calls and outputs.
+Extra Help
+If you need screenshots, video guides, or troubleshooting for any step, just ask!
+If there's any error, copy-paste it here and I'll help you resolve it.
+
+Good luck with your SDE project!
+
+
+
+how to replicate the project structure in idea.
+
+
+
+1. Create the Main Project
+Open IntelliJ IDEA
+File > New > Project
+Select “Java” project (not Gradle/Maven if you want to keep it simple)
+Name: Employee-HRMS-Portal
+Choose location
+Click Finish
+
+
+2. Create Source Folders
+In Project view (left pane), right-click the project root → New > Directory
+Create these main directories:
+src
+backend
+dynamodb
+db
+devops
+tests
+docs
+web (for web.xml)
+Example:
+
+Code
+Employee-HRMS-Portal/
+├── src/
+├── backend/
+├── dynamodb/
+├── db/
+├── devops/
+├── tests/
+├── docs/
+├── web/
+
+
+3. Add Subdirectories and Files
+Right-click on each folder → New > Java Class or New > File to add code files.
+For example, in backend/:
+Add: Employee.java, EmployeeDAO.java, EmployeeServlet.java, etc.
+In dynamodb/:
+Add: LeaveRequest.java, DynamoDBUtil.java
+In db/:
+Add: schema.sql, payroll_query.sql
+In devops/:
+Add: Jenkinsfile
+In tests/:
+Add: payroll_generation.feature
+In docs/:
+Add: requirements.md, class-diagram.md
+In web/:
+Add: web.xml
+
+
+4. Make src Your Source Root
+Right-click on src → Mark Directory as > Sources Root
+
+
+5. Add Libraries (JDBC Driver)
+File > Project Structure > Libraries
+Add the MySQL Connector JAR here.
+
+
+6. Sample Structure in IntelliJ
+After you finish, your Project tab should look like:
+
+Code
+Employee-HRMS-Portal/
+├── src/                (source root)
+│   ├── backend/
+│   ├── dynamodb/
+├── db/
+├── devops/
+├── tests/
+├── docs/
+├── web/
+
+
+7. Start Coding!
+Paste the code I provided into the corresponding files.
+You can now build, run, and test your project.
+Tips:
+
+You can drag-and-drop files/folders to organize.
+Use "New > Java Class" for .java files, "New > File" for others.
+Commit and push to GitHub directly from IntelliJ (VCS menu).
+
+
+
